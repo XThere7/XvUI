@@ -1,8 +1,9 @@
-# XvecBot Dashboard
+# XvecBot Dashboard · BotBase Landing
 
-Dark-primary B2B SaaS dashboard for the XvecBot platform. Non-technical business
-owners turn their documents into embeddable chat widgets. Three jobs drive the
-whole UI: **manage knowledge**, **build agents**, **deploy widgets**.
+Dark-primary B2B SaaS dashboard for the XvecBot platform, plus the public
+**BotBase** landing page at `/`. Non-technical business owners turn their
+documents into embeddable chat widgets. Three jobs drive the whole UI: **manage
+knowledge**, **build agents**, **deploy widgets**.
 
 The complete product specification is in [`frontendbot.md`](./frontendbot.md)
 (page-by-page screens, component library, API guide, design system, accessibility
@@ -126,6 +127,7 @@ variable — those are compiled into the client bundle.
 ## Routes
 
 ```
+/                                        BotBase landing page (Phase 1: sticky header + hero + how-it-works + footer)
 /login · /register                        split auth layout, brand panel
 /dashboard                                onboarding checklist or populated overview
 /workspaces · /workspaces/new             list + create

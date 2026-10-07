@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { Slot } from "@radix-ui/react-slot";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/cn";
 
@@ -34,6 +33,9 @@ const SIZE_CLASSES: Record<ButtonSize, string> = {
   lg: "h-11 px-5 text-base gap-2 rounded-sm",
 };
 
+const BASE_CLASSES =
+  "relative inline-flex shrink-0 select-none items-center justify-center whitespace-nowrap transition-colors duration-150 ease-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50";
+
 export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: ButtonVariant;
   size?: ButtonSize;
@@ -42,6 +44,12 @@ export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   iconLeft?: React.ReactNode;
   iconRight?: React.ReactNode;
   asChild?: boolean;
+};
+
+type ChildProps = {
+  className?: string;
+  children?: React.ReactNode;
+  [key: string]: unknown;
 };
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -62,38 +70,60 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     },
     ref,
   ) {
-    const Comp = asChild ? Slot : "button";
     const isDisabled = disabled || loading;
 
+    const classes = cn(
+      BASE_CLASSES,
+      VARIANT_CLASSES[variant],
+      variant !== "link" && SIZE_CLASSES[size],
+      fullWidth && "w-full",
+      className,
+    );
+
+    /*
+     * asChild is implemented with cloneElement instead of Radix Slot on
+     * purpose: Slot clones its single child and merges every prop onto it, so
+     * composing iconLeft/iconRight in a Fragment here would hand that Fragment
+     * the button's type/disabled/className — and a Fragment rejects all three
+     * ("Invalid prop `type` supplied to React.Fragment"). Cloning the
+     * consumer's own element keeps icons working and never involves a Fragment.
+     */
+    if (asChild && React.isValidElement<ChildProps>(children)) {
+      const content = loading ? (
+        <>
+          <Loader2 aria-hidden className="h-4 w-4 animate-spin" />
+          {children.props.children}
+        </>
+      ) : (
+        <>
+          {iconLeft}
+          {children.props.children}
+          {iconRight}
+        </>
+      );
+
+      return React.cloneElement(children, {
+        ...props,
+        ref,
+        "aria-disabled": isDisabled || undefined,
+        "aria-busy": loading || undefined,
+        "data-loading": loading ? "" : undefined,
+        className: cn(classes, children.props.className),
+        children: content,
+      });
+    }
+
     return (
-      <Comp
+      <button
         ref={ref}
-        type={asChild ? undefined : type}
-        disabled={asChild ? undefined : isDisabled}
+        type={type}
+        disabled={isDisabled}
         aria-busy={loading || undefined}
         data-loading={loading ? "" : undefined}
-        className={cn(
-          "relative inline-flex shrink-0 select-none items-center justify-center whitespace-nowrap",
-          "transition-colors duration-150 ease-out",
-          "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500",
-          "disabled:pointer-events-none disabled:opacity-50",
-          "aria-disabled:pointer-events-none aria-disabled:opacity-50",
-          VARIANT_CLASSES[variant],
-          variant !== "link" && SIZE_CLASSES[size],
-          fullWidth && "w-full",
-          className,
-        )}
+        className={classes}
         {...props}
       >
-        {/*
-          When asChild, Slot clones its single child and merges these props onto
-          it — so the child must be the consumer's own element, never a Fragment
-          (a Fragment cannot receive type/disabled/className). Icons are a
-          non-asChild convenience; with asChild the consumer composes its own.
-        */}
-        {asChild ? (
-          children
-        ) : loading ? (
+        {loading ? (
           /* The spinner replaces the leading icon; the label stays so the
              button width never changes mid-request. */
           <>
@@ -107,7 +137,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             {iconRight}
           </>
         )}
-      </Comp>
+      </button>
     );
   },
 );
