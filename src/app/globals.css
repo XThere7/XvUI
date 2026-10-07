@@ -72,6 +72,7 @@
   --animate-indeterminate: indeterminate 1.6s ease-in-out infinite;
   --animate-shiny: shiny 4s linear infinite;
   --animate-meteor: meteor 3s linear infinite;
+  --animate-marquee: marquee 32s linear infinite;
 }
 
 @keyframes shimmer {
@@ -124,6 +125,15 @@
   100% {
     transform: rotate(215deg) translateX(-380px);
     opacity: 0;
+  }
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
   }
 }
 
